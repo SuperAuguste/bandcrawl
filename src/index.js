@@ -83,6 +83,12 @@ async function getAlbums (options = {
 	
 }
 
+/**
+ * Gets the page type
+ * 
+ * @param {string} url Bandcamp album/releases URL
+ * @returns {"album"|"releases"}
+ */
 async function getPageType (url) {
 
 	let pageSrc = await (await fetch(`${proxy}${url}`)).text();
@@ -104,6 +110,11 @@ async function getReleases (url) {
 
 }
 
+/**
+ * Gets album data
+ * 
+ * @param {string} url URL of album
+ */
 async function getAlbum (url) {
 
 	let pageSrc = await (await fetch(`${proxy}${url}`)).text();
@@ -145,6 +156,11 @@ async function getAlbum (url) {
 
 }
 
+/**
+ * Gets embed data from track or album
+ * 
+ * @param {string} url URL of Album/Track
+ */
 async function getEmbedData (url) {
 
 	let pageSrc = await (await fetch(`${proxy}${url}`)).text();
@@ -169,7 +185,7 @@ async function getEmbedData (url) {
 }
 
 /**
- * 
+ * Generates embed URL
  * 
  * @param {string|object} urlOrObject URL of Album/Track or EmbedData object
  * @param {object} options Options for embed
