@@ -8,6 +8,7 @@ function standardizeAlbum (album) {
 
 		title: album.primary_text,
 
+		id: album.id,
 		url: `https://${album.url_hints.subdomain}.${"bandcamp.com"}/album/${album.url_hints.slug}`,
 		genre: album.genre_text,
 		artist: album.secondary_text,
@@ -112,6 +113,7 @@ async function getAlbum (url) {
 	var album = {
 
 		url,
+		id: raw.id,
 		title: raw.current.title,
 		artist: raw.artist,
 		
@@ -143,6 +145,55 @@ async function getAlbum (url) {
 
 }
 
+async function getEmbedData (url) {
+
+	let pageSrc = await (await fetch(`${proxy}${url}`)).text();
+
+	let raw = (new Function("return " + pageSrc.slice(pageSrc.indexOf("var EmbedData =") + "var EmbedData =".length, (pageSrc.indexOf("var FanData") < pageSrc.indexOf("var EmbedData =") ? pageSrc.indexOf("var TralbumData") : pageSrc.indexOf("var FanData")) - 1).trim().slice(0, -1)))();
+
+	return raw.tralbum_param.name === "track" ? (raw.album_embed_data ? {
+
+		albumId: raw.album_embed_data.tralbum_param.value,
+		trackId: raw.tralbum_param.value
+
+	} : {
+
+		trackId: raw.tralbum_param.value
+
+	}) : {
+
+		albumId: raw.tralbum_param.value
+
+	}
+
+}
+
+/**
+ * 
+ * 
+ * @param {string|object} urlOrObject URL of Album/Track or EmbedData object
+ * @param {object} options Options for embed
+ * @param {"large"|"medium"|"small"} options.type Size of embed
+ */
+async function getEmbedURL (urlOrObject, options = {
+
+	type: "large",
+	tracklist: false,
+
+	linkColor: "0687f5",
+	backgroundColor: "ffffff",
+
+	tracklist: false,
+	transparent: true
+
+}) {
+
+	if (typeof urlOrObject === "string") urlOrObject = await getEmbedData(urlOrObject);
+
+	return `https://bandcamp.com/EmbeddedPlayer/${urlOrObject.albumId ? `album=${urlOrObject.albumId}/` : ""}size=${options.type === "large" || options.type === "medium" ? "large" : "slim"}/bgcol=${options.backgroundColor}/linkcol=${options.linkColor}${urlOrObject.trackId ? `/track=${urlOrObject.trackId}` : ""}/transparent=${options.transparent}/tracklist=${options.tracklist}`;
+
+}
+
 const _ = {
 
 	setProxy (_proxy) {
@@ -158,7 +209,10 @@ const _ = {
 	getPageType,
 	getReleaseListURL,
 
-	getAlbum
+	getAlbum,
+
+	getEmbedData,
+	getEmbedURL
 
 }
 
